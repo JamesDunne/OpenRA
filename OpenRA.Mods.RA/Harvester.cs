@@ -46,16 +46,33 @@ namespace OpenRA.Mods.RA
 			self.QueueActivity( new CallFunc( () => ChooseNewProc(self, null)));
 		}
 
+        public bool ClaimResource(Actor self, int2 p)
+        {
+            var resLayer = self.World.WorldActor.Trait<ResourceLayer>();
+            return resLayer.ClaimResource(this, p);
+        }
+
+        public void UnclaimResource(Actor self)
+        {
+            var resLayer = self.World.WorldActor.Trait<ResourceLayer>();
+            resLayer.UnclaimResource(this);
+        }
+
 		public void ChooseNewProc(Actor self, Actor ignore) { LinkedProc = ClosestProc(self, ignore); }
 
 		public void ContinueHarvesting(Actor self)
 		{
+            // NOTE(jsd): This causes the harvester to get further and further away from
+            // the refinery. Fall back on always finding the closest harvestable point to
+            // the refinery in the FindResources activity.
+#if false
 			if (LastHarvestedCell.HasValue)
 			{
 				var mobile = self.Trait<Mobile>();
 				self.QueueActivity( mobile.MoveTo(LastHarvestedCell.Value, 5) );
 				self.SetTargetLine(Target.FromCell(LastHarvestedCell.Value), Color.Red, false);
 			}
+#endif
 			self.QueueActivity( new FindResources() );
 		}
 

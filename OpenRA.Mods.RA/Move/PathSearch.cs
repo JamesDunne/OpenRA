@@ -119,13 +119,16 @@ namespace OpenRA.Mods.RA.Move
 				if( d.X * d.Y != 0 ) cellCost = ( cellCost * 34 ) / 24;
 
 				// directional bonuses for smoother flow!
-				var ux = (newHere.X + (inReverse ? 1 : 0) & 1);
-				var uy = (newHere.Y + (inReverse ? 1 : 0) & 1);
+                if (LaneBias != 0)
+                {
+                    var ux = (newHere.X + (inReverse ? 1 : 0) & 1);
+                    var uy = (newHere.Y + (inReverse ? 1 : 0) & 1);
 
-				if (ux == 0 && d.Y < 0) cellCost += LaneBias;
-				else if (ux == 1 && d.Y > 0) cellCost += LaneBias;
-				if (uy == 0 && d.X < 0) cellCost += LaneBias;
-				else if (uy == 1 && d.X > 0) cellCost += LaneBias;
+                    if (ux == 0 && d.Y < 0) cellCost += LaneBias;
+                    else if (ux == 1 && d.Y > 0) cellCost += LaneBias;
+                    if (uy == 0 && d.X < 0) cellCost += LaneBias;
+                    else if (uy == 1 && d.X > 0) cellCost += LaneBias;
+                }
 
 				int newCost = cellInfo[ p.Location.X, p.Location.Y ].MinCost + cellCost;
 
@@ -258,5 +261,5 @@ namespace OpenRA.Mods.RA.Move
 		}
 
 		~PathSearch() { Dispose(); }
-	}
+    }
 }

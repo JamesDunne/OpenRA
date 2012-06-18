@@ -12,6 +12,7 @@ using System;
 using System.Drawing;
 using System.Linq;
 using OpenRA.Graphics;
+using System.Collections.Generic;
 
 namespace OpenRA.Traits
 {
@@ -23,6 +24,8 @@ namespace OpenRA.Traits
 
 		public ResourceType[] resourceTypes;
 		CellContents[,] content;
+
+        Dictionary<object, int2> claimers;
 
 		bool hasSetupPalettes;
 
@@ -54,6 +57,7 @@ namespace OpenRA.Traits
 		{
 			this.world = w;
 			content = new CellContents[w.Map.MapSize.X, w.Map.MapSize.Y];
+            claimers = new Dictionary<object, int2>(32);
 
 			resourceTypes = w.WorldActor.TraitsImplementing<ResourceType>().ToArray();
 			foreach (var rt in resourceTypes)
@@ -136,6 +140,41 @@ namespace OpenRA.Traits
 
 		public bool IsFull(int i, int j) { return content[i, j].density == content[i, j].image.Length - 1; }
 
+        public bool ClaimResource(object claimer, int2 p)
+        {
+            // Has anyone else claimed this point?
+            foreach (var cp in claimers)
+            {
+                if (cp.Value != p) continue;
+
+                // Same claimer?
+                return (cp.Key == claimer);
+            }
+
+            // Nobody else claims this point, allow it:
+            claimers[claimer] = p;
+            return true;
+        }
+
+        public bool UnclaimResource(object claimer)
+        {
+            return claimers.Remove(claimer);
+        }
+
+        public bool IsClaimedBy(object claimer, int2 p)
+        {
+            // Has anyone else claimed this point?
+            foreach (var cp in claimers)
+            {
+                if (cp.Value != p) continue;
+
+                // Same claimer?
+                return (cp.Key == claimer);
+            }
+
+            return false;
+        }
+
 		public ResourceType Harvest(int2 p)
 		{
 			var type = content[p.X,p.Y].type;
@@ -163,6 +202,7 @@ namespace OpenRA.Traits
 		}
 
 		public ResourceType GetResource(int2 p) { return content[p.X, p.Y].type; }
+        public int GetResourceDensity(int2 p) { return content[p.X, p.Y].density; }
 
 		public struct CellContents
 		{
